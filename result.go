@@ -1,4 +1,4 @@
-package shortcut_cli
+package shortcut_api
 
 type StorySearchResult struct {
 	Data []Story `json:"data"`

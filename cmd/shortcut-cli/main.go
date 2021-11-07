@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/aliics/shortcut-cli"
+	"github.com/aliics/shortcut-api"
 	"net/url"
 	"os"
 	"strconv"
@@ -15,15 +15,15 @@ var (
 )
 
 func main() {
-	cli := shortcut_cli.NewShortcut(
-		shortcut_cli.WithShortcutToken(os.Getenv("SHORTCUT_TOKEN")),
-		shortcut_cli.WithUrl("https://api.app.shortcut.com/api/v3"),
+	api := shortcut_api.NewShortcut(
+		shortcut_api.WithShortcutToken(os.Getenv("SHORTCUT_TOKEN")),
+		shortcut_api.WithUrl("https://api.app.shortcut.com/api/v3"),
 	)
 
 	flag.Parse()
 
 	if *mostRecentFlag != "" {
-		stories, err := cli.SearchStories("owner:"+*mostRecentFlag, 1)
+		stories, err := api.SearchStories("owner:"+*mostRecentFlag, 1)
 		if err != nil {
 			panic(err)
 		}

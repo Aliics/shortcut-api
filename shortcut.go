@@ -1,4 +1,4 @@
-package shortcut_cli
+package shortcut_api
 
 import (
 	"bytes"
