@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	mostRecentFlag = flag.String("most-recent", "", "")
+	mostRecentFlag = flag.String("most-recent", "", "Most recent story for a user.")
 )
 
 func main() {
