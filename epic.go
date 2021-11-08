@@ -77,6 +77,11 @@ func (s Shortcut) ListStoriesForEpics(epics []Epic) ([]Story, error) {
 
 	go func() {
 		storiesWg := sync.WaitGroup{}
+		defer func() {
+			storiesWg.Wait()
+			close(storiesCh)
+		}()
+
 		for i := 0; i < len(epics); i++ {
 			storiesWg.Add(1)
 			go func(i int) {
@@ -90,9 +95,6 @@ func (s Shortcut) ListStoriesForEpics(epics []Epic) ([]Story, error) {
 				storiesWg.Done()
 			}(i)
 		}
-
-		storiesWg.Wait()
-		close(storiesCh)
 	}()
 
 	var stories []Story

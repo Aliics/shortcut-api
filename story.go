@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type StorySearchResult struct {
@@ -14,8 +15,9 @@ type StorySearchResult struct {
 
 type Story struct {
 	Entity
-	OwnerIds        []string `json:"owner_ids"`
-	WorkflowStateId int      `json:"workflow_state_id"`
+	OwnerIds        []string  `json:"owner_ids"`
+	WorkflowStateId int       `json:"workflow_state_id"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 func (s Story) GetBranchName(owner Member) string {

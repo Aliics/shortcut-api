@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/aliics/shortcut-api"
@@ -28,36 +27,19 @@ func main() {
 	)
 
 	if workflowState != "" {
-		handleWorkflowStateFlag(api)
+		handleWorkflowStateArg(api)
+	} else if mostRecent || owner != "" {
+		handleArbitraryFetch(api)
+	} else if branchName {
+		fmt.Println("argument --branch-name should be used with --owner, --most-recent, or --workflow-state")
 	}
 }
 
-func handleWorkflowStateFlag(api *shortcut_api.Shortcut) {
-	workflows, err := api.ListWorkflows()
-	if err != nil {
-		panic(err)
-	}
+func handleWorkflowStateArg(api *shortcut_api.Shortcut) {
+	workflowStateCh := fetchWorkflowStates(api)
+	membersCh := fetchMembers(api)
 
-	var devWorkflowState shortcut_api.WorkflowState
-	for _, wf := range workflows[0].States {
-		if wf.Name == workflowState {
-			devWorkflowState = wf
-			break
-		}
-	}
-
-	ms, err := api.ListMembers()
-	if err != nil {
-		panic(err)
-	}
-
-	var members []shortcut_api.Member
-	for _, m := range ms {
-		if m.Profile.MentionName == owner || owner == "" {
-			members = append(members, m)
-		}
-	}
-
+	// All non-completed epics and their stories.
 	epics, err := api.QueryEpics(func(epic shortcut_api.Epic) bool {
 		return !epic.Completed
 	})
@@ -70,46 +52,55 @@ func handleWorkflowStateFlag(api *shortcut_api.Shortcut) {
 		panic(err)
 	}
 
+	devWorkflowState := <-workflowStateCh
+	members := <-membersCh
+
+	// Stories which match the workflow state and owner predicates.
 	var stories []shortcut_api.Story
 	for _, story := range ss {
 		var owned bool
-		for _, ownerId := range story.OwnerIds {
-			for _, member := range members {
-				if ownerId == member.Id {
-					owned = true
-					break
-				}
-			}
-		}
+		whenOwned(members, story, func(_ shortcut_api.Member) {
+			owned = true
+		})
 
 		if owned && story.WorkflowStateId == devWorkflowState.Id {
 			stories = append(stories, story)
 		}
 	}
 
-	for _, member := range members {
-		showStories(member, stories)
-	}
+	showStories(members, stories)
 }
 
-func showStories(member shortcut_api.Member, stories []shortcut_api.Story) {
-	showStory := func(member shortcut_api.Member, story shortcut_api.Story) {
-		if branchName {
-			fmt.Println(story.GetBranchName(member))
-		} else {
-			output, err := json.Marshal(story)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(string(output))
+func handleArbitraryFetch(api *shortcut_api.Shortcut) {
+	membersCh := fetchMembers(api)
+
+	// All non-completed epics and their stories.
+	epics, err := api.QueryEpics(func(epic shortcut_api.Epic) bool {
+		return !epic.Completed
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	ss, err := api.ListStoriesForEpics(epics)
+	if err != nil {
+		panic(err)
+	}
+
+	members := <-membersCh
+
+	// Stories which match the workflow state and owner predicates.
+	var stories []shortcut_api.Story
+	for _, story := range ss {
+		var owned bool
+		whenOwned(members, story, func(_ shortcut_api.Member) {
+			owned = true
+		})
+
+		if owned {
+			stories = append(stories, story)
 		}
 	}
 
-	if mostRecent {
-		showStory(member, stories[0])
-	} else {
-		for _, story := range stories {
-			showStory(member, story)
-		}
-	}
+	showStories(members, stories)
 }
