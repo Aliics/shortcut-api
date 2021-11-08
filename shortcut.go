@@ -1,12 +1,10 @@
 package shortcut_api
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 type Shortcut struct {
@@ -23,23 +21,24 @@ func NewShortcut(options ...ShortcutOption) *Shortcut {
 	return s
 }
 
-func (s Shortcut) SearchStories(query string, pageSize int) (*StorySearchResult, error) {
-	req, err := http.NewRequest(
-		"GET",
-		s.url+"/search/stories",
-		bytes.NewBufferString("{\"query\":\""+query+"\",\"page_size\":"+strconv.Itoa(pageSize)+"}"),
-	)
-	if err != nil {
-		return nil, err
-	}
+type ShortcutOption func(shortcut *Shortcut)
 
-	result := &StorySearchResult{}
-	err = s.makeQuery(req, result)
-	if err != nil {
-		return nil, err
+func WithShortcutToken(token string) ShortcutOption {
+	return func(shortcut *Shortcut) {
+		shortcut.token = token
 	}
+}
 
-	return result, nil
+func WithUrl(url string) ShortcutOption {
+	return func(shortcut *Shortcut) {
+		shortcut.url = url
+	}
+}
+
+func WithHttpClient(client *http.Client) ShortcutOption {
+	return func(shortcut *Shortcut) {
+		shortcut.client = client
+	}
 }
 
 func (s Shortcut) makeQuery(req *http.Request, t interface{}) error {
@@ -63,22 +62,7 @@ func (s Shortcut) makeQuery(req *http.Request, t interface{}) error {
 	return json.Unmarshal(rb, t)
 }
 
-type ShortcutOption func(shortcut *Shortcut)
-
-func WithShortcutToken(token string) ShortcutOption {
-	return func(shortcut *Shortcut) {
-		shortcut.token = token
-	}
-}
-
-func WithUrl(url string) ShortcutOption {
-	return func(shortcut *Shortcut) {
-		shortcut.url = url
-	}
-}
-
-func WithHttpClient(client *http.Client) ShortcutOption {
-	return func(shortcut *Shortcut) {
-		shortcut.client = client
-	}
+type Entity struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
