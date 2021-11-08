@@ -23,7 +23,6 @@ func main() {
 
 	api := shortcut_api.NewShortcut(
 		shortcut_api.WithShortcutToken(os.Getenv("SHORTCUT_TOKEN")),
-		shortcut_api.WithUrl("https://api.app.shortcut.com/api/v3"),
 	)
 
 	if workflowState != "" {

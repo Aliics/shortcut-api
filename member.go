@@ -13,6 +13,7 @@ type MemberProfile struct {
 	MentionName string `json:"mention_name"`
 }
 
+// ListMembers returns a list of the visible Members.
 func (s Shortcut) ListMembers() ([]Member, error) {
 	req, err := http.NewRequest(
 		"GET",

@@ -13,6 +13,7 @@ type WorkflowState struct {
 	Entity
 }
 
+// ListWorkflows returns a list of the visible Workflows.
 func (s Shortcut) ListWorkflows() ([]Workflows, error) {
 	req, err := http.NewRequest(
 		"GET",

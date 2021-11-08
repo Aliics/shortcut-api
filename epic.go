@@ -19,6 +19,7 @@ type EpicStats struct {
 	NumStoriesDone    int `json:"num_stories_done"`
 }
 
+// ListEpics returns a list of the visible Epics.
 func (s Shortcut) ListEpics() ([]Epic, error) {
 	req, err := http.NewRequest(
 		"GET",
@@ -37,6 +38,9 @@ func (s Shortcut) ListEpics() ([]Epic, error) {
 
 	return result, nil
 }
+
+// ListEpicStories returns a list of stories associated
+// with the provided Epic.
 func (s Shortcut) ListEpicStories(epic Epic) ([]Story, error) {
 	req, err := http.NewRequest(
 		"GET",
@@ -56,6 +60,9 @@ func (s Shortcut) ListEpicStories(epic Epic) ([]Story, error) {
 	return result, nil
 }
 
+// QueryEpics works the same way ListEpics does
+// but a predicate is run over the result of the
+// query.
 func (s Shortcut) QueryEpics(predicate func(Epic) bool) ([]Epic, error) {
 	allEpics, err := s.ListEpics()
 	if err != nil {
@@ -72,6 +79,8 @@ func (s Shortcut) QueryEpics(predicate func(Epic) bool) ([]Epic, error) {
 	return epics, nil
 }
 
+// ListStoriesForEpics returns a list of stories associated
+// with the provided Epic.
 func (s Shortcut) ListStoriesForEpics(epics []Epic) ([]Story, error) {
 	storiesCh := make(chan []Story, len(epics))
 
